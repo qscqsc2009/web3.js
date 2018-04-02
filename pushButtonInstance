@@ -1,0 +1,53 @@
+import PushButton from '../build/contracts/PushButton.json'
+import getWeb3 from './utils/getWeb3'
+
+//其餘省略
+
+componentWillMount() {
+  getWeb3.then(results => {
+    this.setState({
+      web3: results.web3
+    })
+    // Instantiate contract once web3 provided.
+    this.instantiateContract()
+  }).catch(() => {
+    console.log('Error finding web3.')
+  })
+}
+
+instantiateContract() {
+  const contract = require('truffle-contract')
+  const pushButton = contract(PushButton)
+  pushButton.setProvider(this.state.web3.currentProvider)
+
+  var pushButtonInstance
+
+  this.state.web3.eth.getAccounts((error, accounts) => {
+    pushButton.at(contractAddress).then((instance) => {
+      pushButtonInstance = instance
+      this.setState({pushButtonInstance});
+      return pushButtonInstance.totalPush.call();
+    }).then((result) => {
+      this.setState({totalPush: this.state.web3.toDecimal(result)});
+      return pushButtonInstance.nextTimeoutBlock.call();
+    }).then((result) => {
+      this.setState({nextTimeoutBlock: this.state.web3.toDecimal(result)});
+      return pushButtonInstance.title.call();
+    }).then((result) => {
+      this.setState({title: result});
+      return true;
+    })
+  })
+}
+
+push() {
+  this.state.web3.eth.getAccounts((error, accounts) => {
+    this.state.pushButtonInstance.push({from: accounts[0]}).then((result) => {
+      console.log(result.tx);
+    }).catch((error) => {
+      console.log(error);
+    })
+  })
+}
+
+// 其餘省略
